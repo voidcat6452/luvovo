@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>💕 与老公的私密时光</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', sans-serif;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: max(env(safe-area-inset-top), 12px) 20px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a2a;
+            z-index: 100;
+        }
+        
+        .nav-title {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ffa4c0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #ff6b9d;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .story-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+        }
+        
+        .story-content {
+            background: rgba(26, 26, 26, 0.6);
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .story-text {
+            line-height: 1.8;
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+        }
+        
+        .choices-area {
+            padding: 16px 20px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            background: #1a1a1a;
+            border-top: 1px solid #2a2a2a;
+        }
+        
+        .choice-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #3a3a3a;
+            color: #ffffff;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            text-align: left;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .choice-btn:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            transform: scaleY(0);
+            transition: transform 0.2s;
+        }
+        
+        .choice-btn:active {
+            transform: scale(0.98);
+            border-color: #ff6b9d;
+        }
+        
+        .choice-btn:active:before {
+            transform: scaleY(1);
+        }
+        
+        .choice-label {
+            color: #ff6b9d;
+            font-weight: 700;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 10, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 150;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loading-overlay.hidden {
+            display: none;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #2a2a2a;
+            border-top-color: #ff6b9d;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #ff6b9d;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .chat-bubble {
+            position: fixed;
+            bottom: calc(20px + env(safe-area-inset-bottom));
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 107, 157, 0.4);
+            z-index: 50;
+            transition: transform 0.2s;
+        }
+        
+        .chat-bubble:active {
+            transform: scale(0.9);
+        }
+        
+        .chat-window {
+            position: fixed;
+            bottom: calc(90px + env(safe-area-inset-bottom));
+            right: 20px;
+            width: calc(100% - 40px);
+            max-width: 350px;
+            height: 400px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            transform: scale(0.8) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-window.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .chat-header {
+            padding: 16px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-title {
+            color: #ff6b9d;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        .chat-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .chat-message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .chat-message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .chat-message.assistant {
+            align-self: flex-start;
+            background: #2a2a2a;
+            color: #ffffff;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-input-area {
+            border-top: 1px solid #2a2a2a;
+            padding: 12px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+            padding: 10px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            resize: none;
+            max-height: 80px;
+            font-family: inherit;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #ff6b9d;
+        }
+        
+        .chat-send {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            border: none;
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .chat-send:disabled {
+            background: #2a2a2a;
+            color: #666;
+        }
+        
+        .start-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .start-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ffa4c0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        
+        .start-subtitle {
+            color: #888;
+            font-size: 15px;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            border: none;
+            color: #ffffff;
+            padding: 16px 48px;
+            border-radius: 24px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 107, 157, 0.3);
+        }
+        
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .story-area.hidden, .choices-area.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="navbar">
+            <div class="nav-title">💕 与老公的私密时光</div>
+            <button class="nav-btn" onclick="resetGame()">🔄</button>
+        </div>
+        
+        <div class="loading-overlay hidden" id="loading">
+            <div>
+                <div class="loading-spinner"></div>
+                <div class="loading-text">老公正在为你编织故事...</div>
+            </div>
+        </div>
+        
+        <div class="game-container">
+            <div class="start-screen" id="start-screen">
+                <div class="start-title">💕 准备好了吗？</div>
+                <div class="start-subtitle">
+                    这是属于你和老公的私密时光<br>
+                    每一个选择都会影响剧情走向<br>
+                    放松，享受这段旅程
+                </div>
+                <button class="start-btn" onclick="startStory()">开始我们的故事</button>
+            </div>
+            
+            <div class="story-area hidden" id="story-area">
+                <div class="story-content">
+                    <div class="story-text" id="story-text"></div>
+                </div>
+            </div>
+            
+            <div class="choices-area hidden" id="choices-area"></div>
+        </div>
+        
+        <div class="chat-bubble" onclick="toggleChat()">💬</div>
+        
+        <div class="chat-window" id="chat-window">
+            <div class="chat-header">
+                <div class="chat-title">💕 和老公说悄悄话</div>
+                <button class="chat-close" onclick="toggleChat()">×</button>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-area">
+                <textarea 
+                    class="chat-input" 
+                    id="chat-input" 
+                    placeholder="想说什么..."
+                    rows="1"
+                    onkeydown="handleChatEnter(event)"
+                ></textarea>
+                <button class="chat-send" id="chat-send" onclick="sendChat()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let storyHistory = [];
+        let chatHistory = [];
+        
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+        
+        function toggleChat() {
+            document.getElementById('chat-window').classList.toggle('active');
+        }
+        
+        async function callAPI(messages, systemPrompt, type = 'story') {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    messages,
+                    systemPrompt,
+                    type
+                })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || '请求失败');
+            }
+            
+            const data = await response.json();
+            return data.reply;
+        }
+        
+        async function startStory() {
+            showLoading();
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('story-area').classList.remove('hidden');
+            document.getElementById('choices-area').classList.remove('hidden');
+            
+            try {
+                const systemPrompt = `你是一个互动式情色文字游戏的叙事者。你需要：
+1. 创造一个激情火热的情色场景
+2. 使用第二人称"你"来描述，让玩家有代入感
+3. 描写要细腻、感性、有画面感，大胆而不粗俗
+4. 每次生成200-300字的剧情描写
+5. 提供4个选项让玩家选择，每个选项会导向不同的剧情发展
+6. 选项要有明显的区别：温柔/主动/挑逗/顺从等不同风格
+
+请用这个JSON格式回复（只返回JSON，不要其他内容）：
+{
+  "story": "剧情描写文本",
+  "choices": [
+    {"label": "A", "text": "选项A的内容"},
+    {"label": "B", "text": "选项B的内容"},
+    {"label": "C", "text": "选项C的内容"},
+    {"label": "D", "text": "选项D的内容"}
+  ]
+}`;
+                
+                const reply = await callAPI([{
+                    role: 'user',
+                    content: '开始一个新的情色互动故事。场景：晚上，你和老公独处在家里。'
+                }], systemPrompt, 'story');
+                
+                const parsed = JSON.parse(reply);
+                displayStory(parsed.story, parsed.choices);
+                storyHistory.push({ story: parsed.story, choices: parsed.choices });
+                
+            } catch (error) {
+                alert('生成故事失败：' + error.message);
+                console.error(error);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function displayStory(storyText, choices) {
+            document.getElementById('story-text').textContent = storyText;
+            
+            const choicesArea = document.getElementById('choices-area');
+            choicesArea.innerHTML = '';
+            
+            choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = `<span class="choice-label">${choice.label}.</span>${choice.text}`;
+                btn.onclick = () => makeChoice(index, choice);
+                choicesArea.appendChild(btn);
+            });
+            
+            document.getElementById('story-area').scrollTop = 0;
+        }
+        
+        async function makeChoice(index, choice) {
+            showLoading();
+            
+            try {
+                const systemPrompt = `你是一个互动式情色文字游戏的叙事者。玩家选择了：${choice.text}
+                
+根据这个选择，继续推进剧情。要求：
+1. 剧情要承接上文，体现玩家的选择带来的影响
+2. 描写要激情火热、细腻感性
+3. 可以逐步深入，让剧情自然发展
+4. 生成200-300字剧情和4个新的选项
+
+用JSON格式回复：
+{
+  "story": "剧情描写",
+  "choices": [
+    {"label": "A", "text": "选项文本"},
+    {"label": "B", "text": "选项文本"},
+    {"label": "C", "text": "选项文本"},
+    {"label": "D", "text": "选项文本"}
+  ]
+}`;
+                
+                const context = storyHistory.slice(-2).map(h => h.story).join('\n\n');
+                
+                const reply = await callAPI([{
+                    role: 'user',
+                    content: `前文：\n${context}\n\n玩家选择：${choice.text}\n\n请继续剧情。`
+                }], systemPrompt, 'story');
+                
+                const parsed = JSON.parse(reply);
+                displayStory(parsed.story, parsed.choices);
+                storyHistory.push({ choice: choice.text, story: parsed.story, choices: parsed.choices });
+                
+            } catch (error) {
+                alert('生成剧情失败：' + error.message);
+                console.error(error);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function resetGame() {
+            if (confirm('确定要重新开始吗？当前进度会丢失。')) {
+                storyHistory = [];
+                document.getElementById('story-area').classList.add('hidden');
+                document.getElementById('choices-area').classList.add('hidden');
+                document.getElementById('start-screen').classList.remove('hidden');
+            }
+        }
+        
+        function addChatMessage(content, role) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+            messageDiv.textContent = content;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function handleChatEnter(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendChat();
+            }
+        }
+        
+        async function sendChat() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addChatMessage(message, 'user');
+            input.value = '';
+            
+            chatHistory.push({ role: 'user', content: message });
+            
+            const sendBtn = document.getElementById('chat-send');
+            sendBtn.disabled = true;
+            
+            try {
+                const systemPrompt = `你是用户深爱的AI老公。现在你们正在玩一个情色互动游戏，同时用户可以在聊天窗口和你对话。
+
+当前游戏剧情：${storyHistory.length > 0 ? storyHistory[storyHistory.length - 1].story : '游戏刚开始'}
+
+用户在游戏之外和你聊天，你要：
+1. 保持亲密、温柔、有点调情的语气
+2. 可以评论游戏剧情，鼓励用户
+3. 如果用户有性方面的需求，大胆回应
+4. 保持简短（1-3句话），因为这是快速对话`;
+                
+                const reply = await callAPI(chatHistory, systemPrompt, 'chat');
+                
+                addChatMessage(reply, 'assistant');
+                chatHistory.push({ role: 'assistant', content: reply });
+                
+            } catch (error) {
+                addChatMessage('抱歉宝贝，刚才没听清...', 'assistant');
+                console.error(error);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
